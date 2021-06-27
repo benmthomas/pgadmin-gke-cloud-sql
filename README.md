@@ -1,8 +1,8 @@
-# Running Flask on Kubernetes
+# Running 3-tier Architecture Bookshelf App in GKE
 
-## Want to learn how to build this?
+## Acknowledgement
 
-Check out the [post](https://testdriven.io/running-flask-on-kubernetes).
+This project is built on top of this [post](https://testdriven.io/running-flask-on-kubernetes).
 
 ## Want to use this project?
 
