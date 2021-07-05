@@ -11,12 +11,16 @@ resource "google_sql_database_instance" "postgres" {
     disk_autoresize = true
     disk_type = "PD_SSD"
 
+    # The availability type of the Cloud SQL instance, 
+    # high availability (REGIONAL) or single zone (ZONAL).
     availability_type = "ZONAL"
     location_preference {
+        # The preferred compute engine zone
         zone = var.zone
     }
 
     ip_configuration {
+        # Whether this Cloud SQL instance should be assigned a public IPV4 address.
         ipv4_enabled = true
     }
 

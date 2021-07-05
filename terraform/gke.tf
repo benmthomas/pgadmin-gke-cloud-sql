@@ -1,12 +1,3 @@
-# variable "gke_username" {
-#   default     = ""
-#   description = "gke username"
-# }
-
-# variable "gke_password" {
-#   default     = ""
-#   description = "gke password"
-# }
 resource "google_service_account" "default" {
   provider = google
 
@@ -15,19 +6,17 @@ resource "google_service_account" "default" {
   project      = var.project_id
 }
 
-variable "zone" {
-  description = "zone"
-}
-
-variable "gke_num_nodes" {
-  default     = 2
-  description = "number of gke nodes"
-}
-
 # GKE cluster
+# https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "primary" {
   name     = "${var.project_id}-gke"
+  
+  # Creating a zonal cluster since this is only an example and for a quick provisioning
   location = var.zone
+
+  release_channel {
+    channel = "STABLE"
+  }
   
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default
@@ -43,12 +32,16 @@ resource "google_container_cluster" "primary" {
   workload_identity_config {
     identity_namespace = "${var.project_id}.svc.id.goog"
   }
-
+  timeouts {
+    update = "20m"
+  }
 }
 
 # Separately Managed Node Pool
+# https://www.terraform.io/docs/providers/google/r/container_node_pool.html
 resource "google_container_node_pool" "primary_nodes" {
   name       = "${google_container_cluster.primary.name}-node-pool"
+  # Creating a zonal node pool since this is only an example and for a quick provisioning
   location   = var.zone
   cluster    = google_container_cluster.primary.name
   node_count = var.gke_num_nodes
@@ -58,12 +51,9 @@ resource "google_container_node_pool" "primary_nodes" {
       min_node_count = 1
       max_node_count = 3
   }
-
+  
+  # Parameters used in creating the cluster's nodes.
   node_config {
-    # oauth_scopes = [
-    #   "https://www.googleapis.com/auth/logging.write",
-    #   "https://www.googleapis.com/auth/monitoring",
-    # ]
     # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
     service_account = google_service_account.default.email
     oauth_scopes    = [
@@ -75,11 +65,21 @@ resource "google_container_node_pool" "primary_nodes" {
     }
 
     # preemptible  = true
+
+    # The name of a Google Compute Engine machine type. Defaults to
+    # n1-standard-1.
     machine_type = "n1-standard-1"
     tags         = ["gke-node", "${var.project_id}-gke"]
     metadata = {
+      # https://cloud.google.com/kubernetes-engine/docs/how-to/protecting-cluster-metadata
       disable-legacy-endpoints = "true"
     }
+  }
+  # Change how long update operations on the node pool are allowed to take
+  # before being considered to have failed. The default is 10 mins.
+  # https://www.terraform.io/docs/configuration/resources.html#operation-timeouts
+  timeouts {
+    update = "20m"
   }
 }
 
