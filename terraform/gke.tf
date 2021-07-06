@@ -9,6 +9,7 @@ resource "google_service_account" "default" {
 # GKE cluster
 # https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "primary" {
+  project = var.project_id
   name     = "${var.project_id}-gke"
   
   # Creating a zonal cluster since this is only an example and for a quick provisioning
@@ -40,6 +41,7 @@ resource "google_container_cluster" "primary" {
 # Separately Managed Node Pool
 # https://www.terraform.io/docs/providers/google/r/container_node_pool.html
 resource "google_container_node_pool" "primary_nodes" {
+  project = var.project_id
   name       = "${google_container_cluster.primary.name}-node-pool"
   # Creating a zonal node pool since this is only an example and for a quick provisioning
   location   = var.zone
@@ -89,7 +91,7 @@ resource "google_container_node_pool" "primary_nodes" {
 # # It references the variables and resources provisioned in this file. 
 # # We recommend you put this in another file -- so you can have a more modular configuration.
 # # https://learn.hashicorp.com/terraform/kubernetes/provision-gke-cluster#optional-configure-terraform-kubernetes-provider
-# # To learn how to schedule deployments and services using the provider, go here: https://learn.hashicorp.com/tutorials/terraform/kubernetes-provider.
+# # To learn how to schedule deployments and services using the provider, go here: https://learn.hashicorp.com/tutorials/terrafoecho 'yamldecode(file("my-manifest-file.yaml"))' | terraform consolerm/kubernetes-provider.
 
 # provider "kubernetes" {
 #   load_config_file = "false"

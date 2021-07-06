@@ -1,3 +1,9 @@
+# vars.tf
+# Defines project-specific variables that can be injected into other
+# HCL files using "${var.var_name}" syntax.
+
+# ==[ Project variables ]================================================
+
 variable "project_id" {
   type = string
   description = "Google Cloud project ID (not name)"
@@ -10,11 +16,19 @@ variable "region" {
 }
 
 variable "zone" {
-  description = "The zone to host the cluster in"
+  description = "The zone to host the cloud sql database"
   default = "us-central1-b"
 }
 
 variable "gke_num_nodes" {
   description = "number of gke nodes"
   default     = 1
+}
+
+# ==[ Credentials ]======================================================
+
+variable "postgres_user_password" {
+  type = string
+  description = "The password of postgres database user"
+  sensitive = true
 }
