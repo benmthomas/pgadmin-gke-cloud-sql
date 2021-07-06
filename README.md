@@ -67,6 +67,16 @@ gcloud config set project my-project-name
 Updated property [core/project].
 ```
 
+## Set terraform variables
+
+If you wish to override the terraform variables, update the `terraform/terraform.tfvars` file with the desired value.
+E.g.
+```terraform
+project_id = "my-project-id"
+region     = "us-central1"
+zone       = "us-central1-b"
+```
+
 ## Create Resources
 
 To create the entire environment via Terraform, run the following command from the project root folder:
@@ -75,7 +85,7 @@ To create the entire environment via Terraform, run the following command from t
 sh ./create.sh
 ```
 
-Next, to deploy the application, apply the k8s manifests located in the `/kubernetes/gke` directory:
+Next, to deploy the application by applying the k8s manifests located in the `/kubernetes/gke` directory:
 
 ```bash
 sh ./deploy.sh
