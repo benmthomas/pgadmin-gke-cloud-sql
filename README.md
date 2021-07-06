@@ -1,167 +1,90 @@
-# Running 3-tier Architecture Bookshelf App in GKE
+# Deploying 3-tier Architecture Bookshelf App in GKE using terraform
 
 ## Acknowledgement
 
-This project is built on top of this [post](https://testdriven.io/running-flask-on-kubernetes).
+This project is built on top of this [repo](https://github.com/testdrivenio/flask-vue-kubernetes).
 
-## Want to use this project?
+## Prerequisites
 
-### Docker
+### Google Cloud Project
 
-Build the images and spin up the containers:
+ You'll need access to a Google Cloud Project with billing enabled. See [Creating and Managing Projects](https://cloud.google.com/resource-manager/docs/creating-managing-projects) for creating a new project. To make cleanup easier it's recommended to create a new project.
 
-```sh
-$ docker-compose up -d --build
+### Required GCP APIs
+
+The following APIs will be enabled by terraform code:
+
+* Compute Engine API
+* Kubernetes Engine API
+* Cloud SQL Admin API
+* Secret Token API
+* Stackdriver Logging API
+* Stackdriver Monitoring API
+* IAM Service Account Credentials API
+
+### Tools
+
+The following tools are required:
+
+* Access to an existing Google Cloud project.
+* Bash or Shell common command line tool.
+* [Terraform v0.13.0+](https://www.terraform.io/downloads.html)
+* [gcloud v255.0.0+](https://cloud.google.com/sdk/downloads)
+* [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) that matches the latest generally-available GKE cluster version.
+
+## Deployment
+
+### Authenticate gcloud
+
+ Authenticate your gcloud client by running the following command:
+
+```console
+gcloud auth login
 ```
 
-Run the migrations and seed the database:
+### Configure gcloud settings
 
-```sh
-$ docker-compose exec server python manage.py recreate_db
-$ docker-compose exec server python manage.py seed_db
+Run `gcloud config list` and make sure that `compute/zone`, `compute/region` and `core/project` are populated with appropriate values. You can set their values with the following commands:
+
+```console
+# Where the region is us-central1
+gcloud config set compute/region us-central1
+
+Updated property [compute/region].
 ```
 
-Test it out at:
+```console
+# Where the zone inside the region is us-central1-b
+gcloud config set compute/zone us-central1-b
 
-1. [http://localhost:8080/](http://localhost:8080/)
-1. [http://localhost:5001/books/ping](http://localhost:5001/books/ping)
-1. [http://localhost:5001/books](http://localhost:5001/books)
-
-### Kubernetes
-
-#### Minikube
-
-Install and run [Minikube](https://kubernetes.io/docs/setup/minikube/):
-
-1. Install a [Hypervisor](https://kubernetes.io/docs/tasks/tools/install-minikube/#install-a-hypervisor) (like [VirtualBox](https://www.virtualbox.org/wiki/Downloads) or [HyperKit](https://github.com/moby/hyperkit)) to manage virtual machines
-1. Install and Set Up [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) to deploy and manage apps on Kubernetes
-1. Install [Minikube](https://github.com/kubernetes/minikube/releases)
-
-Start the cluster:
-
-```sh
-$ minikube start --vm-driver=virtualbox
-$ minikube dashboard
+Updated property [compute/zone].
 ```
 
-#### Volume
+```console
+# Where the project name is my-project-name
+gcloud config set project my-project-name
 
-Create the volume:
-
-```sh
-$ kubectl apply -f ./kubernetes/persistent-volume.yml
+Updated property [core/project].
 ```
 
-Create the volume claim:
+## Create Resources
 
-```sh
-$ kubectl apply -f ./kubernetes/persistent-volume-claim.yml
+To create the entire environment via Terraform, run the following command from the project root folder:
+
+```bash
+sh ./create.sh
 ```
 
-#### Secrets
+Next, to deploy the application, apply the k8s manifests located in the `/kubernetes/gke` directory:
 
-Create the secret object:
-
-```sh
-$ kubectl apply -f ./kubernetes/secret.yml
+```bash
+sh ./deploy.sh
 ```
 
-#### Postgres
+## Tear Down
 
-Create deployment:
+To delete all created resources in GCP, run:
 
-```sh
-$ kubectl create -f ./kubernetes/postgres-deployment.yml
+```bash
+sh ./destroy.sh
 ```
-
-Create the service:
-
-```sh
-$ kubectl create -f ./kubernetes/postgres-service.yml
-```
-
-Create the database:
-
-```sh
-$ kubectl get pods
-$ kubectl exec postgres-<POD_IDENTIFIER> --stdin --tty -- createdb -U postgres books
-```
-
-#### Flask
-
-Build and push the image to Docker Hub:
-
-```sh
-$ docker build -t mjhea0/flask-kubernetes ./services/server
-$ docker push mjhea0/flask-kubernetes
-```
-
-> Make sure to replace `mjhea0` with your Docker Hub namespace in the above commands as well as in *kubernetes/flask-deployment.yml*
-
-Create the deployment:
-
-```sh
-$ kubectl create -f ./kubernetes/flask-deployment.yml
-```
-
-Create the service:
-
-```sh
-$ kubectl create -f ./kubernetes/flask-service.yml
-```
-
-Apply the migrations and seed the database:
-
-```sh
-$ kubectl get pods
-$ kubectl exec flask-<POD_IDENTIFIER> --stdin --tty -- python manage.py recreate_db
-$ kubectl exec flask-<POD_IDENTIFIER> --stdin --tty -- python manage.py seed_db
-```
-
-#### Ingress
-
-Enable and apply:
-
-```sh
-$ minikube addons enable ingress
-$ kubectl apply -f ./kubernetes/minikube-ingress.yml
-```
-
-Add entry to */etc/hosts* file:
-
-```
-<MINIKUBE_IP> hello.world
-```
-
-Try it out:
-
-1. [http://hello.world/books/ping](http://hello.world/books/ping)
-1. [http://hello.world/books](http://hello.world/books)
-
-
-#### Vue
-
-Build and push the image to Docker Hub:
-
-```sh
-$ docker build -t mjhea0/vue-kubernetes ./services/client \
-    -f ./services/client/Dockerfile-minikube
-
-$ docker push mjhea0/vue-kubernetes
-```
-
-> Again, replace `mjhea0` with your Docker Hub namespace in the above commands as well as in *kubernetes/vue-deployment.yml*
-
-Create the deployment:
-
-```sh
-$ kubectl create -f ./kubernetes/vue-deployment.yml
-```
-
-Create the service:
-
-```sh
-$ kubectl create -f ./kubernetes/vue-service.yml
-```
-
-Try it out at [http://hello.world/](http://hello.world/).
