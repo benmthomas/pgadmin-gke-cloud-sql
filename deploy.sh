@@ -1,7 +1,16 @@
 #!/bin/bash
-set -euo pipefail
 
-# echo "Creating the database credentials..."
+###############################################################################
+#
+# Apply the configmap, secret, and deployment manifests to the cluster.
+#
+###############################################################################
+
+set -euo pipefail
+set -o nounset
+set -o pipefail
+
+# Create the database credentials
 # kubectl apply -f ./kubernetes/gke/secret.yml
 
 # Create the secret that includes the user/pass for postgres
@@ -28,23 +37,6 @@ kubectl create serviceaccount postgres-ksa -n default \
 GCP_SA="$(cd terraform && terraform output --raw gcp_serviceaccount)"
 kubectl annotate serviceaccount -n default postgres-ksa --overwrite=true iam.gke.io/gcp-service-account="${GCP_SA}"
 
-# echo "Creating the flask deployment and service..."
-
-# kubectl apply -f ./kubernetes/gke/flask-deployment.yml
-# kubectl apply -f ./kubernetes/gke/flask-service.yml
-
-
-# echo "Adding the ingress..."
-
-# # minikube addons enable ingress
-# # kubectl delete -A ValidatingWebhookConfiguration ingress-nginx-admission
-# kubectl apply -f ./kubernetes/minikube-ingress.yml
-
-
-# echo "Creating the vue deployment and service..."
-
-# kubectl apply -f ./kubernetes/gke/vue-deployment.yml
-# kubectl apply -f ./kubernetes/gke/vue-service.yml
-
+# Apply k8s manifests
 find kubernetes/gke/ -name "*.yml" | xargs -I{} kubectl apply -f {} \
 --namespace default
