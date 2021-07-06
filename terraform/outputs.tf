@@ -1,3 +1,6 @@
+# outputs.tf
+# Defines all the relevant outputs for the deployment.
+
 output "region" {
   value       = var.region
   description = "GCloud Region"

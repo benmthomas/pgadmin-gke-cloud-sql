@@ -1,3 +1,6 @@
+# vpc.tf
+# Contains configurations to provision network resources in GCP
+
 # VPC
 resource "google_compute_network" "vpc" {
   project = var.project_id

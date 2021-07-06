@@ -1,3 +1,6 @@
+# gke.tf
+# Provisions GKE related resources for this project.
+
 # GKE cluster
 # https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "primary" {

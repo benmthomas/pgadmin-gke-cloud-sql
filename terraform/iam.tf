@@ -1,3 +1,6 @@
+# iam.tf
+# Provisions all IAM related resources for this project.
+
 # Create the GKE service account
 resource "google_service_account" "gke-sa" {
   project      = var.project_id

@@ -1,3 +1,6 @@
+# main.tf
+# Configures Terraform workspace/provider settings.
+
 terraform {
   required_version = ">= 0.13.0"
   
