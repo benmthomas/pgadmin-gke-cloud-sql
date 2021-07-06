@@ -25,7 +25,7 @@ output "postgres_instance" {
 }
 
 # Full connection string for the Postgres DB
-output "cloud_sql_instance_connection_name" {
+output "postgres_instance_connection_name" {
     value = google_sql_database_instance.postgres.connection_name
     description = "Cloud SQL Instance Connection Name"
 }
