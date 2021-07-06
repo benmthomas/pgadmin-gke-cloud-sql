@@ -12,9 +12,17 @@ resource "google_container_cluster" "primary" {
   project = var.project_id
   name     = "${var.project_id}-gke"
   
-  # Creating a zonal cluster since this is only an example and for a quick provisioning
+  # Creating a zonal cluster since this is only an example and for quick provisioning
   location = var.zone
 
+  network    = google_compute_network.vpc.name
+  subnetwork = google_compute_subnetwork.subnet.name
+
+  logging_service    = "logging.googleapis.com/kubernetes"
+  monitoring_service = "monitoring.googleapis.com/kubernetes"
+
+  # The selected k8s release channel. 
+  # STABLE: Every few months upgrade cadence; Production users who need stability above all else
   release_channel {
     channel = "STABLE"
   }
@@ -24,17 +32,33 @@ resource "google_container_cluster" "primary" {
   # node pool and immediately delete it.
   remove_default_node_pool = true
   initial_node_count       = 1
-
-  network    = google_compute_network.vpc.name
-  subnetwork = google_compute_subnetwork.subnet.name
   
+  # Enable Shielded Nodes features on all nodes in this cluster. Defaults to false
   enable_shielded_nodes = true
 
+  # Enable workload identity for Cloud SQL authentication.
   workload_identity_config {
     identity_namespace = "${var.project_id}.svc.id.goog"
   }
+
+  # Disable basic authentication and cert-based authentication.
+  # Empty fields for username and password are how to "disable" the
+  # credentials from being generated.
+  master_auth {
+    username = ""
+    password = ""
+
+    client_certificate_config {
+      issue_client_certificate = "false"
+    }
+  }
+  
+  # Allow time for each operation to finish.
   timeouts {
-    update = "20m"
+    create = "40m" # Default is 40 minutes.
+    read   = "40m" # Default is 40 minutes.
+    update = "60m" # Default is 60 minutes.
+    delete = "40m" # Default is 40 minutes.
   }
 }
 
@@ -54,34 +78,55 @@ resource "google_container_node_pool" "primary_nodes" {
       max_node_count = 3
   }
   
+  # Auto repair any issues.
+  management {
+    auto_repair  = true
+    auto_upgrade = true
+  }
+  
   # Parameters used in creating the cluster's nodes.
   node_config {
+    machine_type = "n1-standard-1"
+    disk_type    = "pd-standard"
+    image_type   = "COS"
+
     # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
     service_account = google_service_account.default.email
     oauth_scopes    = [
-      "https://www.googleapis.com/auth/cloud-platform"
+      # "https://www.googleapis.com/auth/cloud-platform",
+      "https://www.googleapis.com/auth/devstorage.read_only",
+      "https://www.googleapis.com/auth/logging.write",
+      "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/servicecontrol",
+      "https://www.googleapis.com/auth/service.management.readonly",
+      "https://www.googleapis.com/auth/trace.append",
     ]
 
     labels = {
-      env = var.project_id
+      env     = var.project_id
+      cluster = "${var.project_id}-gke"
+    }
+
+    # Enable workload identity on this node pool
+    workload_metadata_config {
+      node_metadata = "GKE_METADATA_SERVER"
     }
 
     # preemptible  = true
 
-    # The name of a Google Compute Engine machine type. Defaults to
-    # n1-standard-1.
-    machine_type = "n1-standard-1"
     tags         = ["gke-node", "${var.project_id}-gke"]
+
     metadata = {
       # https://cloud.google.com/kubernetes-engine/docs/how-to/protecting-cluster-metadata
       disable-legacy-endpoints = "true"
     }
   }
-  # Change how long update operations on the node pool are allowed to take
-  # before being considered to have failed. The default is 10 mins.
-  # https://www.terraform.io/docs/configuration/resources.html#operation-timeouts
+  
+  # Allow time for each operation to finish.
   timeouts {
-    update = "20m"
+    create = "30m" # Default is 30 minutes.
+    update = "30m" # Default is 30 minutes.
+    delete = "30m" # Default is 30 minutes.
   }
 }
 

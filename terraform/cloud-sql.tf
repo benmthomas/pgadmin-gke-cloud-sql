@@ -1,6 +1,6 @@
 resource "google_sql_database_instance" "postgres" {
   project = var.project_id
-  name             = "${var.project_id}-postgres-instance"
+  name             = "${var.project_id}-pg-instance"
   database_version = "POSTGRES_13"
   region           = var.region
 
@@ -46,19 +46,17 @@ resource "google_sql_database_instance" "postgres" {
 // Provision a super user
 resource "google_sql_user" "super-user" {
   project = var.project_id
-  name     = "postgres"
+  name     = var.db_username
+  
+  # The password for the user. Can be updated. 
+  # For Postgres instances this is a Required field.
+  password = var.db_password
 
   #  The name of the Cloud SQL instance.
   instance = google_sql_database_instance.postgres.name
 
-  # The user type. It determines the method to authenticate the user during login. 
-  # The default is the database's built-in user type.
-  # Flags include "BUILT_IN", "CLOUD_IAM_USER", or "CLOUD_IAM_SERVICE_ACCOUNT".
-  type     = "BUILT_IN"
 
-  # The password for the user. Can be updated. 
-  # For Postgres instances this is a Required field.
-  password = var.postgres_user_password
+  depends_on = [google_sql_database_instance.postgres]
 }
 
 // Provision the database
@@ -66,5 +64,6 @@ resource "google_sql_database" "database" {
   project = var.project_id
   name     = "books"
   instance = google_sql_database_instance.postgres.name
+  depends_on = [google_sql_database_instance.postgres]
 }
 

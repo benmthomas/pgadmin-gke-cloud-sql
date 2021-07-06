@@ -2,7 +2,7 @@
 # Defines project-specific variables that can be injected into other
 # HCL files using "${var.var_name}" syntax.
 
-# ==[ Project variables ]================================================
+# Project variables
 
 variable "project_id" {
   type = string
@@ -20,15 +20,45 @@ variable "zone" {
   default = "us-central1-b"
 }
 
+
+# Optional values that can be overridden or appended to if desired.
+
 variable "gke_num_nodes" {
   description = "number of gke nodes"
   default     = 1
 }
 
-# ==[ Credentials ]======================================================
+variable "k8s_namespace" {
+  type        = string
+  description = "The namespace to use for the deployment and workload identity binding"
+  default     = "default"
+}
 
-variable "postgres_user_password" {
+
+variable "db_username" {
+  type        = string
+  description = "The name for the DB connection"
+  default     = "postgres"
+}
+
+variable "db_password" {
   type = string
   description = "The password of postgres database user"
   sensitive = true
+}
+
+variable "project_services" {
+  type = list
+  description = "The GCP APIs that should be enabled in this project."
+  default = [
+    "cloudresourcemanager.googleapis.com",
+    "servicenetworking.googleapis.com",
+    "container.googleapis.com",
+    "compute.googleapis.com",
+    "iam.googleapis.com",
+    "logging.googleapis.com",
+    "monitoring.googleapis.com",
+    "sqladmin.googleapis.com",
+    "securetoken.googleapis.com",
+  ]
 }
