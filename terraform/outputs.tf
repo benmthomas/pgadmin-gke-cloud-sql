@@ -53,3 +53,8 @@ output "gcp_serviceaccount" {
   description = "The email/name of the GCP Service Account used for cloudsql-postgres authentication"
   value       = google_service_account.access-postgres.email
 }
+
+output "get_credentials" {
+  description = "Gcloud get-credentials command"
+  value       = "gcloud container clusters get-credentials ${google_container_cluster.primary.name} --project ${var.project_id} --zone ${var.zone}"
+}
