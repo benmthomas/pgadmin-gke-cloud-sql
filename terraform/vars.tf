@@ -22,7 +22,7 @@ variable "zone" {
   default = "us-central1-b"
 }
 
-# ==[ Optional ]======================================================
+# ==[ Optional variables ]======================================================
 
 # Optional values that can be overridden or appended to if desired.
 
@@ -40,7 +40,13 @@ variable "k8s_namespace" {
 variable "k8s_sa_name" {
   type        = string
   description = "The k8s service account name to use for the deployment and workload identity binding"
-  default     = "postgres-sa"
+  default     = "postgres-ksa"
+}
+
+variable "db_name" {
+  type        = string
+  description = "Name of the DB"
+  default     = "books"
 }
 
 variable "db_username" {
