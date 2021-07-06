@@ -1,11 +1,3 @@
-resource "google_service_account" "default" {
-  provider = google
-
-  account_id   = "gke-cluster-minimal-sa"
-  display_name = "Minimal service account for GKE cluster"
-  project      = var.project_id
-}
-
 # GKE cluster
 # https://www.terraform.io/docs/providers/google/r/container_cluster.html
 resource "google_container_cluster" "primary" {
@@ -91,7 +83,7 @@ resource "google_container_node_pool" "primary_nodes" {
     image_type   = "COS"
 
     # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
-    service_account = google_service_account.default.email
+    service_account = google_service_account.gke-sa.email
     oauth_scopes    = [
       # "https://www.googleapis.com/auth/cloud-platform",
       "https://www.googleapis.com/auth/devstorage.read_only",
@@ -131,12 +123,9 @@ resource "google_container_node_pool" "primary_nodes" {
 }
 
 
-# # Kubernetes provider
-# # The Terraform Kubernetes Provider configuration below is used as a learning reference only. 
-# # It references the variables and resources provisioned in this file. 
-# # We recommend you put this in another file -- so you can have a more modular configuration.
-# # https://learn.hashicorp.com/terraform/kubernetes/provision-gke-cluster#optional-configure-terraform-kubernetes-provider
-# # To learn how to schedule deployments and services using the provider, go here: https://learn.hashicorp.com/tutorials/terrafoecho 'yamldecode(file("my-manifest-file.yaml"))' | terraform consolerm/kubernetes-provider.
+# Kubernetes provider
+# https://learn.hashicorp.com/terraform/kubernetes/provision-gke-cluster#optional-configure-terraform-kubernetes-provider
+# To schedule deployments and services using the provider, go here: https://learn.hashicorp.com/tutorials/terrafoecho 'yamldecode(file("my-manifest-file.yaml"))' | terraform consolerm/kubernetes-provider.
 
 # provider "kubernetes" {
 #   load_config_file = "false"
