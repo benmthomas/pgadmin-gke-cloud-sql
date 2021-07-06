@@ -15,7 +15,7 @@ spec:
         app: vue
     spec:
       containers:
-      - image: mjhea0/vue-kubernetes:latest
+      - image: bmtben/vue-kubernetes:latest
         imagePullPolicy: Always
         name: vue
         resources:
@@ -25,6 +25,8 @@ spec:
           requests:
             memory: "512Mi"
             cpu: "250m"
+        ports:
+            - containerPort: 8080
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       restartPolicy: Always

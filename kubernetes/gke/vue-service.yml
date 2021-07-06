@@ -4,8 +4,8 @@ metadata:
   name: vue
   labels:
     service: vue
-  name: vue
 spec:
+  type: NodePort
   selector:
     app: vue
   ports:
