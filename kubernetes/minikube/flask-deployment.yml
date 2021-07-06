@@ -3,24 +3,39 @@ kind: Deployment
 metadata:
   creationTimestamp: null
   labels:
-    name: vue
-  name: vue
+    name: flask
+  name: flask
 spec:
   progressDeadlineSeconds: 2147483647
   replicas: 1
   selector:
     matchLabels:
-      app: vue
+      app: flask
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: vue
+        app: flask
     spec:
       containers:
-      - image: mjhea0/vue-kubernetes:latest
+      - env:
+        - name: FLASK_ENV
+          value: development
+        - name: APP_SETTINGS
+          value: project.config.DevelopmentConfig
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              key: user
+              name: postgres-credentials
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: password
+              name: postgres-credentials
+        image: mjhea0/flask-kubernetes:latest
         imagePullPolicy: Always
-        name: vue
+        name: flask
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
