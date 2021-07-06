@@ -32,7 +32,7 @@ The following tools are required:
 * [gcloud v255.0.0+](https://cloud.google.com/sdk/downloads)
 * [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) that matches the latest generally-available GKE cluster version.
 
-## Deployment
+# Deployment
 
 ### Authenticate gcloud
 
