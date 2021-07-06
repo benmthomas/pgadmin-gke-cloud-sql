@@ -1,4 +1,4 @@
-# Deploying 3-tier Architecture Bookshelf App in GKE using terraform
+# Deploy a 3-tier Architecture Bookshelf App on GKE using Terraform
 
 ## Acknowledgement
 
