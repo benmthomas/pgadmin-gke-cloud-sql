@@ -52,6 +52,13 @@ resource "google_container_cluster" "primary" {
     update = "60m" # Default is 60 minutes.
     delete = "40m" # Default is 40 minutes.
   }
+
+  depends_on = [
+    google_project_service.service,
+    google_project_iam_member.service-account,
+    google_project_iam_member.service-account-custom,
+    google_compute_subnetwork.subnet,
+  ]
 }
 
 # Separately Managed Node Pool
@@ -120,21 +127,6 @@ resource "google_container_node_pool" "primary_nodes" {
     update = "30m" # Default is 30 minutes.
     delete = "30m" # Default is 30 minutes.
   }
+
+  depends_on = [google_container_cluster.primary]
 }
-
-
-# Kubernetes provider
-# https://learn.hashicorp.com/terraform/kubernetes/provision-gke-cluster#optional-configure-terraform-kubernetes-provider
-# To schedule deployments and services using the provider, go here: https://learn.hashicorp.com/tutorials/terrafoecho 'yamldecode(file("my-manifest-file.yaml"))' | terraform consolerm/kubernetes-provider.
-
-# provider "kubernetes" {
-#   load_config_file = "false"
-
-#   host     = google_container_cluster.primary.endpoint
-#   username = var.gke_username
-#   password = var.gke_password
-
-#   client_certificate     = google_container_cluster.primary.master_auth.0.client_certificate
-#   client_key             = google_container_cluster.primary.master_auth.0.client_key
-#   cluster_ca_certificate = google_container_cluster.primary.master_auth.0.cluster_ca_certificate
-# }
