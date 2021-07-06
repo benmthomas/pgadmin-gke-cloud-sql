@@ -10,8 +10,8 @@ resource "google_container_cluster" "primary" {
   # Creating a zonal cluster since this is only an example and for quick provisioning
   location = var.zone
 
-  # network    = google_compute_network.vpc.name
-  # subnetwork = google_compute_subnetwork.subnet.name
+  network    = google_compute_network.vpc.name
+  subnetwork = google_compute_subnetwork.subnet.name
 
   logging_service    = "logging.googleapis.com/kubernetes"
   monitoring_service = "monitoring.googleapis.com/kubernetes"
