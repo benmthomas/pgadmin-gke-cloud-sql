@@ -2,7 +2,9 @@
 # Defines project-specific variables that can be injected into other
 # HCL files using "${var.var_name}" syntax.
 
-# Project variables
+# ==[ Project variables ]================================================
+
+# Required values to be set in terraform.tfvars
 
 variable "project_id" {
   type = string
@@ -20,6 +22,7 @@ variable "zone" {
   default = "us-central1-b"
 }
 
+# ==[ Optional ]======================================================
 
 # Optional values that can be overridden or appended to if desired.
 
@@ -34,6 +37,11 @@ variable "k8s_namespace" {
   default     = "default"
 }
 
+variable "k8s_sa_name" {
+  type        = string
+  description = "The k8s service account name to use for the deployment and workload identity binding"
+  default     = "postgres-sa"
+}
 
 variable "db_username" {
   type        = string
@@ -45,6 +53,22 @@ variable "db_password" {
   type = string
   description = "The password of postgres database user"
   sensitive = true
+}
+
+variable "service_account_iam_roles" {
+  type = list
+  description = "List of the default IAM roles to attach to the service account on the GKE Nodes."
+  default = [
+    "roles/logging.logWriter",
+    "roles/monitoring.metricWriter",
+    "roles/monitoring.viewer",
+  ]
+}
+
+variable "service_account_custom_iam_roles" {
+  type = list
+  description = "List of arbitrary additional IAM roles to attach to the service account on the GKE nodes."
+  default = []
 }
 
 variable "project_services" {
