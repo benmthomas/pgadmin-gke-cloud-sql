@@ -40,11 +40,12 @@ resource "google_sql_database_instance" "postgres" {
   # (Default: true ) Whether or not to allow Terraform to destroy the instance. 
   # Unless this field is set to false in Terraform state, a terraform destroy or terraform 
   # apply command that deletes the instance will fail.
+  # Not recommended for production deployments. Set as false for development and testing purposes.
   deletion_protection = false
 }
 
 // Provision a super user
-resource "google_sql_user" "super-user" {
+resource "google_sql_user" "postgres-user" {
   project = var.project_id
   name     = var.db_username
   
@@ -59,10 +60,10 @@ resource "google_sql_user" "super-user" {
   depends_on = [google_sql_database_instance.postgres]
 }
 
-// Provision the database
+# Provision the database
 resource "google_sql_database" "database" {
   project = var.project_id
-  name     = "books"
+  name     = var.db_name
   instance = google_sql_database_instance.postgres.name
   depends_on = [google_sql_database_instance.postgres]
 }
