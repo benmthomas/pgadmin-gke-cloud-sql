@@ -1,28 +1,37 @@
 #!/bin/bash
-
-
-# echo "Creating the volume..."
-
-# kubectl apply -f ./kubernetes/persistent-volume.yml
-# kubectl apply -f ./kubernetes/persistent-volume-claim.yml
-
+set -euo pipefail
 
 # echo "Creating the database credentials..."
+# kubectl apply -f ./kubernetes/gke/secret.yml
 
-# kubectl apply -f ./kubernetes/secret.yml
+# Create the secret that includes the user/pass for postgres
+echo 'Creating the postgres db secret'
+POSTGRES_USER="$(cd terraform && terraform output --raw postgres_user)"
+POSTGRES_PASS="$(cd terraform && terraform output --raw postgres_pass)"
+kubectl create secret generic postgres-credentials \
+  --from-literal=user="${POSTGRES_USER}" \
+  --from-literal=password="${POSTGRES_PASS}" \
+  --dry-run=client -o yaml | kubectl apply -f -
 
+# Create the configmap that includes the connection string for the DB.
+echo 'Creating the postgresql connenction string Configmap'
+POSTGRES_CONNECTION="$(cd terraform && terraform output --raw postgres_instance_connection_name)"
+kubectl create configmap connectionname \
+  --from-literal=connectionname="${POSTGRES_CONNECTION}" \
+  --dry-run=client -o yaml | kubectl apply -f -
 
-# echo "Creating the postgres deployment and service..."
+# Create the service account
+kubectl create serviceaccount postgres-ksa -n default \
+  --dry-run=client -o yaml | kubectl apply -f -
 
-# kubectl create -f ./kubernetes/postgres-deployment.yml
-# kubectl create -f ./kubernetes/postgres-service.yml
-
-
+# Annotate the KSA
+GCP_SA="$(cd terraform && terraform output --raw gcp_serviceaccount)"
+kubectl annotate serviceaccount -n default postgres-ksa --overwrite=true iam.gke.io/gcp-service-account="${GCP_SA}"
 
 # echo "Creating the flask deployment and service..."
 
-# kubectl create -f ./kubernetes/flask-deployment.yml
-# kubectl create -f ./kubernetes/flask-service.yml
+# kubectl apply -f ./kubernetes/gke/flask-deployment.yml
+# kubectl apply -f ./kubernetes/gke/flask-service.yml
 
 
 # echo "Adding the ingress..."
@@ -34,8 +43,8 @@
 
 # echo "Creating the vue deployment and service..."
 
-# kubectl create -f ./kubernetes/vue-deployment.yml
-# kubectl create -f ./kubernetes/vue-service.yml
+# kubectl apply -f ./kubernetes/gke/vue-deployment.yml
+# kubectl apply -f ./kubernetes/gke/vue-service.yml
 
-find kubernetes/ -name "*.yml" | xargs -I{} kubectl apply -f {} \
---namespace test
+find kubernetes/gke/ -name "*.yml" | xargs -I{} kubectl apply -f {} \
+--namespace default
