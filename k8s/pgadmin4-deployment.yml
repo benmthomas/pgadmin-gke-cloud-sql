@@ -60,7 +60,6 @@ spec:
                   key: connectionname
           command: 
             - "/cloud_sql_proxy"
-            # - "-instances=stately-minutia-318001:us-central1:stately-minutia-318001-pg-instance-32ce2dd3=tcp:5432"
             - "-instances=$(INSTANCE_CONNECTION)=tcp:5432"
       volumes:
         - name: psql-server

@@ -27,7 +27,8 @@ kubectl -n="${K8S_NAMESPACE}" create configmap connectionname \
   --from-literal=connectionname="${POSTGRES_CONNECTION}" \
   --dry-run=client -o yaml | kubectl apply -f -
 
-# POSTGRES_USER="$(cd terraform && terraform output --raw postgres_user)"
+# Create the configmap which is used to import the db connection in pgadmin.
+echo 'Creating db connection Configmap for pgadmin import'
 echo '{"Servers":{"1":{"Name":"Dummy Database","Group":"deloitte-challenge-server-group","Port":5432,"Username":"'${POSTGRES_USER}'","Host":"localhost","SSLMode":"prefer","MaintenanceDB":"postgres"}}}' \
 > psql-server.json
 kubectl -n="${K8S_NAMESPACE}" create configmap psql-server \
@@ -35,13 +36,16 @@ kubectl -n="${K8S_NAMESPACE}" create configmap psql-server \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # Create the K8s Service Account (KSA)
+echo 'Creating Kubernetes Service Account'
 kubectl -n="${K8S_NAMESPACE}" create serviceaccount postgres-ksa -n default \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # Annotate the KSA
+echo 'Annotating Kubernetes Service Account'
 GCP_SA="$(cd terraform && terraform output --raw gcp_serviceaccount)"
 kubectl -n="${K8S_NAMESPACE}" annotate serviceaccount -n default postgres-ksa --overwrite=true iam.gke.io/gcp-service-account="${GCP_SA}"
 
 # Apply k8s manifests
+echo 'Applying Kubernetes manifests'
 find k8s -name "*.yml" | xargs -I{} kubectl apply -f {} \
 --namespace "${K8S_NAMESPACE}"
