@@ -46,13 +46,13 @@ variable "k8s_sa_name" {
 variable "db_name" {
   type        = string
   description = "Name of the DB"
-  default     = "books"
+  default     = "deloitte-challenge-test-database"
 }
 
 variable "db_username" {
   type        = string
   description = "The name for the DB connection"
-  default     = "postgres"
+  default     = "pgadmin@postgres.com"
 }
 
 variable "db_password" {

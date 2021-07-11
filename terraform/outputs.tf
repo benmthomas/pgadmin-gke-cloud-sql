@@ -21,6 +21,11 @@ output "kubernetes_cluster_host" {
   description = "GKE Cluster Host"
 }
 
+output "kubernetes_namespace" {
+  value = var.k8s_namespace
+  description = "k8s namespace used for deployment"
+}
+
 # Used when setting up the GKE cluster to talk to Postgres.
 output "postgres_instance" {
   description = "The name of the Cloud SQL instance"
@@ -36,6 +41,12 @@ output "postgres_instance_connection_name" {
 output "cloud_sql_instance_service_account" {
     value = google_sql_database_instance.postgres.service_account_email_address
     description = "Cloud SQL Instance Service Account"
+}
+
+# Postgres DB name.
+output "postgres_db_name" {
+  description = "Postgres database name"
+  value = google_sql_database.database.name
 }
 
 # Postgres DB username.
