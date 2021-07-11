@@ -115,6 +115,7 @@ This script will import the db connection and port-forward the client which can 
 > **Tip:** If the scripts require executive permissions, run: `chmod +x script-name.sh`
 
 ## Testing the `pgAdmin 4` web application
+
 - Visit http://localhost:8080
 - Enter the values from `var.db_username` and `var.db_password` as username and password (default is `pgadmin@postgres.com` and `postgres`).
 - After login, from the `Browse` pane on the left, go to `deloitte-challenge-server-group` which we imported earlier and select `Dummy Database` connection.
