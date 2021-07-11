@@ -1,8 +1,20 @@
-# Deploy a 3-tier Architecture Bookshelf App on GKE using Terraform
+# Deploy a `pgAdmin` Web Application on GKE, Cloud SQL using Terraform
 
-## Acknowledgement
+## Introduction
 
-This project is built on top of this [repo](https://github.com/testdrivenio/flask-vue-kubernetes).
+This example demonstrates creating a Kubenernetes cluster in [Googke Kubernetes Engine](https://cloud.google.com/kubernetes-engine/docs/concepts/kubernetes-engine-overview) (GKE) running the [pgAdmin 4](https://github.com/postgres/pgadmin4) web app which has a frontend UI developed using jQuery and Bootstrap, a backend implemented powered by Flask. The `pgAdmin4` workload connects to a [Cloud SQL](https://cloud.google.com/sql/docs/postgres/) instance using the [cloud-sql-proxy](https://cloud.google.com/sql/docs/mysql/connect-kubernetes-engine) "sidecar" container which allows the communication between them. 
+
+The communication between the workload and `cloud sql` instance is achieved by using the [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity) feature which provides the credentials directly to the `cloud-sql-proxy` sidecar container without having to handle the GCP credentials manually.
+
+## Architecture
+The application and its sidecar container are deployed in a single Kubernetes (k8s) pod running on the only node in the Kubernetes Engine cluster. The application communicates with the Cloud SQL instance via the Cloud SQL Proxy process listening on localhost.
+
+The k8s manifest builds a single-replica Deployment object with two containers, pgAdmin and Cloud SQL Proxy. There are two secrets installed into the Kubernetes Engine cluster: the Cloud SQL instance connection information and a service account key credentials file, both used by the Cloud SQL Proxy containers Cloud SQL API calls.
+
+The application doesn't have to know anything about how to connect to Cloud SQL, nor does it have to have any exposure to its API. The Cloud SQL Proxy process takes care of that for the application.
+
+![Application in Kubernetes Engine using a Cloud SQL Proxy sidecar container to communicate with a Cloud SQL Proxy instance](doc/architecture-diagram.png)
+
 
 ## Prerequisites
 
@@ -76,25 +88,42 @@ project_id = "my-project-id"
 region     = "us-central1"
 zone       = "us-central1-b"
 ```
+> The `.tfvars` file is usually added in .gitignore, but it's retained here just as an example.
 
+To keep things simple, we're using the values from `db_username` and `db_password` variables as login credentials for both `postgres` database instance and the `pgAdmin`. Since pgAdmin mandates the username should be in an e-mail address form, we're using `pgadmin@postgres.com` as the `db_username`. If you wish to override the username variable, please use an e-mail id form.
 ## Create Resources
 
 To create the entire environment via Terraform, run the following command from the project root folder:
 
 ```bash
-sh ./create.sh
+./create.sh
 ```
 
-Next, to deploy the application by applying the k8s manifests located in the `/kubernetes/gke` directory:
+To deploy the application by applying the k8s manifests located in the `/kubernetes/gke` directory:
 
 ```bash
-sh ./deploy.sh
+./deploy.sh
 ```
 
+Once the `pgAdmin` k8s resources are online, connect the postgres db with the client by running:
+
+```bash
+./connect-db.sh
+```
+This script will import the db connection and port-forward the client which can be accessed at http://localhost:8080
+
+> **Tip:** If the scripts require executive permissions, run: `chmod +x script-name.sh`
+
+## Testing the `pgAdmin 4` web application
+- Visit http://localhost:8080
+- Enter the values from `var.db_username` and `var.db_password` as username and password (default is `pgadmin@postgres.com` and `postgres`).
+- After login, from the `Browse` pane on the left, go to `deloitte-challenge-server-group` which we imported earlier and select `Dummy Database` connection.
+- When prompted for password, enter the `var.db_password` terraform variable value (default is `postgres`) and click `OK`.
+- Now you will be able to browse the databases hosted on the `cloud sql` instance including the database (default is `deloitte-challenge-test-database`) that was created using terraform. Verify by running `terraform output postgres_db_name`.
 ## Tear Down
 
 To delete all created resources in GCP, run:
 
 ```bash
-sh ./destroy.sh
+./destroy.sh
 ```
