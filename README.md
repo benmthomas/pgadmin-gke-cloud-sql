@@ -81,8 +81,8 @@ Updated property [compute/zone].
 ```
 
 ```console
-# Where the project name is my-project-name
-gcloud config set project my-project-name
+# Where the project id is my-project-id
+gcloud config set project my-project-id
 
 Updated property [core/project].
 ```
