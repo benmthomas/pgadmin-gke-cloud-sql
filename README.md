@@ -15,7 +15,15 @@ The application doesn't have to know anything about how to connect to Cloud SQL,
 
 ![Application in Kubernetes Engine using a Cloud SQL Proxy sidecar container to communicate with a Cloud SQL Proxy instance](doc/architecture-diagram.png)
 
+### Workload Identity Overview
 
+The traditional method to connect a k8s pod with a GCP resource like Cloud SQL involves creating a [service account key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) in JSON format, storing that in a Kubernetes-native `secret` inside the `namespace` where the `pod` is to run, and configuring the `pod` to mount that secret on a particular file path inside the pod.  However, there are a few downsides to this approach:
+
+1. The credentials inside this JSON file are essentially, static keys and they don't expire unless manually revoked via the GCP APIs.
+1. The act of exporting the credential file to JSON means it touches the disk of the administrator and/or CI/CD system.
+1. Replacing the credential means re-exporting a new Service Account key to JSON, replacing the contents of the Kubernetes `secret` with the updated contents, and restarting the `pod` for the `cloud-sql-proxy` to make use of the new contents.
+
+[Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity) helps remove several manual steps and ensures that the `cloud-sql-proxy` is always using a short-lived credential that auto-rotates on it's own.  Workload Identity, when configured inside a GKE cluster, allows for a Kubernetes Service Account (KSA) to be mapped to a GCP Service Account (GSA) via a process called "Federation".  It then installs a proxy on each GKE worker `node` that intercepts all requests to the [GCE Metadata API](https://cloud.google.com/compute/docs/storing-retrieving-metadata) where the dynamic credentials are accessible and returns the current credentials for that GCP Service Account to the process in the `pod` instead of the credentials normally associated with the underlying GCE Instance.  As long as the proper IAM configuration is made to map the KSA to the GSA, the `pod` can be given a dedicated service account with just the permissions needed.
 ## Prerequisites
 
 ### Google Cloud Project
